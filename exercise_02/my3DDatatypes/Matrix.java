@@ -56,16 +56,16 @@ public class Matrix {
 
 	public static Matrix createYRotation(float angle) {
 		return new Matrix(new float[][] { { (float) Math.cos(angle), 0, (float) Math.sin(angle), 0 }, createId().val[1],
-				{ (float) -Math.sin(angle), 0, (float) Math.cos(angle), 0 }, createId().val[4] });
+				{ (float) -Math.sin(angle), 0, (float) Math.cos(angle), 0 }, createId().val[3] });
 	}
 
 	public static Matrix createZRotation(float angle) {
 		return new Matrix(new float[][] { { (float) Math.cos(angle), (float) -Math.sin(angle), 0, 0 },
-				{ (float) Math.sin(angle), (float) Math.cos(angle), 0, 0 }, createId().val[3], createId().val[4] });
+				{ (float) Math.sin(angle), (float) Math.cos(angle), 0, 0 }, createId().val[2], createId().val[3] });
 	}
 
 	public static Matrix createTranslation(float dx, float dy, float dz) {
-		return new Matrix(new float[][] { { 1, 0, 0, dx }, { 0, 1, 0, dy }, { 0, 0, 1, dz }, createId().val[4] });
+		return new Matrix(new float[][] { { 1, 0, 0, dx }, { 0, 1, 0, dy }, { 0, 0, 1, dz }, createId().val[3] });
 	}
 
 	public void apply(List<Triangle> ts) {
