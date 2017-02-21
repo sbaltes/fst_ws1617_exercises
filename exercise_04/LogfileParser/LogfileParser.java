@@ -63,7 +63,7 @@ contents = sb.toString();
 
     //contents = Files.lines(Paths.get(filename), Charset.forName("UTF-8")).collect(Collectors.joining("\n"));
 
-    String[] compos = filename.replace("_","/").split("§");
+    String[] compos = filename.replace("$","/").split("§");
 
     String[] commits = contents.split("\ncommit");
     System.out.println("# Commits: " + commits.length);
