@@ -81,7 +81,14 @@ contents = sb.toString();
 
       // First Line of a commit is always the hash
 
-      c.hash = reader.readLine().trim();
+      c.hash = reader.readLine();
+
+if (c.hash == null) {
+	reader.close();
+	return;
+}
+
+c.hash = c.hash.trim();
 
       // The next 2-3 lines can be merge, author or date.
 
@@ -90,14 +97,18 @@ contents = sb.toString();
       while((line = reader.readLine())!=null && !line.equals("")) {
 
         if(line.substring(0, 6).equals("Author")) {
-          c.author = line.substring(8);
+          c.author = line.substring(8).replace("\"", "").replace(";",",");
           String[] ath = c.author.split("<");
-          c.author_name = ath[0].trim();
-          c.author_email = ath[1].replace(">","").replace(";","+").trim();
+          c.author_name = ath[0].trim().replace("\"", "").replace(";",",");
+          c.author_email = ath[1].replace(">","").replace(";","+").trim().replace("\"", "");
           } else if(line.substring(0, 4).equals("Date")) {
-          c.date = line.substring(8);
+          c.date = line.substring(8).replace("\"", "").replace(";",",");;
+
+          String[] dates = c.date.split(" ");
+          c.date = dates[0] + " " + dates[1] + dates[2].substring(0,3) + ":" + dates[2].substring(3,5);
+
         } else if(line.substring(0, 5).equals("Merge")) {
-          c.merge = line.substring(8);
+          c.merge = line.substring(7).replace("\"", "").replace(";",",");;
         }
 
       }
@@ -105,7 +116,7 @@ contents = sb.toString();
       // Here comes the description of the commit
 
       while((line = reader.readLine())!=null && !line.equals("")) {
-        c.desc += line + "\n";
+        c.desc += line.replace("\"", "").replace(";",",") + "\n";
       }
 
       // And now the files section
@@ -121,20 +132,24 @@ contents = sb.toString();
           if(!sf[0].equals("-")) {  // check if not a binary
             f.added = Integer.parseInt(sf[0]);
             f.deleted = Integer.parseInt(sf[1]);
-          }
+          } else {
+	continue;
+	}
 
-          f.name = sf[2].replace(";","");
+          f.name = sf[2].replace("\"", "").replace(";",",");
           f.setExt();
 
           c.addFile(f);
 
         } else {
 
-          c.desc += line + "\n";
+          c.desc += line.replace("\"", "").replace(";",",") + "\n";
 
         }
 
       }
+
+      c.count = c.desc.length();
 
       cl.add(c);
 
@@ -145,13 +160,13 @@ contents = sb.toString();
     PrintWriter pw_commits = new PrintWriter(new FileWriter("/media/jascha/530abec2-0ac0-4858-bf4b-242cc3dfc37d/git-csv/" + compos[0].replace("/media/jascha/530abec2-0ac0-4858-bf4b-242cc3dfc37d/git-logs/","").replace("/","_") + "§" + compos[1].replace("/","_") + "_commits.csv"));
     PrintWriter pw_files = new PrintWriter(new FileWriter("/media/jascha/530abec2-0ac0-4858-bf4b-242cc3dfc37d/git-csv/" + compos[0].replace("/media/jascha/530abec2-0ac0-4858-bf4b-242cc3dfc37d/git-logs/","").replace("/","_") + "§" + compos[1].replace("/","_") + "_files.csv"));
 
-    pw_commits.write("project;branch;hash;merge;author_name;author_email;date");
+    pw_commits.write("project;branch;hash;merge;author_name;author_email;date;count");
     //pw_commits.write("project;branch;hash;merge;author;author_name;author_email;date;desc");
     pw_files.write("project;branch;hash;added;deleted;name;ext");
 
     for(Commit c: cl) {
 
-      pw_commits.write("\n" + c.project + ";" + c.branch + ";" + c.hash + ";" + c.merge + ";" + c.author_name + ";" + c.author_email + ";" + c.date);
+      pw_commits.write("\n" + c.project + ";" + c.branch + ";" + c.hash + ";" + c.merge + ";" + c.author_name + ";" + c.author_email + ";" + c.date + ";" + c.count);
 //      pw_commits.write("\n" + c.project + ";" + c.branch + ";" + c.hash + ";" + c.merge + ";" + c.author + ";" + c.author_name + ";" + c.author_email + ";" + c.date + ";" + c.desc.replace("\n", "<cr>").replace(";", ","));
 
       for(File f: c.files) {
@@ -160,6 +175,8 @@ contents = sb.toString();
 
     }
 
+    pw_commits.write("\n");
+    pw_files.write("\n");
     pw_commits.close();
     pw_files.close();
   }
@@ -170,15 +187,16 @@ contents = sb.toString();
 
 class Commit {
 
-  public String project;
-  public String branch;
-  public String hash;
-  public String merge;
-  public String author;
-  public String author_name;
-  public String author_email;
-  public String date;
+  public String project = "";
+  public String branch = "";
+  public String hash = "";
+  public String merge = "";
+  public String author = "";
+  public String author_name = "";
+  public String author_email = "";
+  public String date = "";
   public String desc = "";
+  public int count = 0;
   public ArrayList<File> files;
 
   Commit() {
@@ -195,8 +213,8 @@ class File {
 
   public int added = 0;
   public int deleted = 0;
-  public String name;
-  public String ext;
+  public String name = "";
+  public String ext = "";
 
   public void setExt() {
     int indexOfExt = name.lastIndexOf('.');
