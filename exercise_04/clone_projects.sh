@@ -62,7 +62,7 @@ do
       git config merge.renameLimit 999999
       git config diff.renameLimit 999999
 
-      git log --date=iso --numstat > $targetfile
+      git log --date=iso --numstat --diff-filter=ADM > $targetfile
 
     done
 
