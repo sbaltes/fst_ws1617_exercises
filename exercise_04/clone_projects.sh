@@ -1,6 +1,6 @@
-#!/usr/bin/bash
+#!/bin/bash
 
-targetdir="/media/jascha/530abec2-0ac0-4858-bf4b-242cc3dfc37d/git-logs/"
+targetdir="/e/Temp/"
 
 
 # Clone all repos
@@ -8,7 +8,7 @@ targetdir="/media/jascha/530abec2-0ac0-4858-bf4b-242cc3dfc37d/git-logs/"
 filename="$1"
 counter=0
 
-while read -r line
+while read -r line || [[ -n "$line" ]]; # do not ignore last line (see https://stackoverflow.com/a/10929511)
 do
     counter=$((counter+1))
     echo "##################################### Now we process project #$counter ###############################################"
@@ -16,17 +16,25 @@ do
     date
     echo "###############################################################################################################"
     name="$line"
-    echo "Name read from file - $name"
+	name=`echo "$name" | xargs` # trim string
+    echo "Name read from file: $name"
 
     github="https://www.github.com/"
     git=".git"
     gitlink=$github$name$git
 
     clearname=${name//[\/]/_}
-    echo clearname: $clearname
+	echo "Clearname: $clearname"
+	
+	# try to clone repo
+	git clone $gitlink $clearname
+	
+	if [ ! -d "$clearname" ]; then
+		echo "Error while cloning repo $name, continuing with next repo..."
+		continue
+	fi
 
-    git clone $gitlink $clearname
-
+	# change directory to current repo if clone was successful
     cd $clearname
 
     # REMOTE BRANCHES
