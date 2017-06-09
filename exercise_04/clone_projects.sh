@@ -85,7 +85,8 @@ do
         git checkout -b $branch $remote_branch 
       fi
 
-      targetfile=$targetdir$clearname"§"$branch".log"
+	  clearbranch=${branch//[\/]/_}
+      targetfile=$targetdir$clearname"§"$clearbranch".log"
       echo "Remote branch: $remote_branch"
       echo "Branch name: $branch"
       echo "Target file: $targetfile"
