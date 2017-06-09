@@ -29,41 +29,81 @@ do
 
     cd $clearname
 
-    ## MASTER-BRANCH
+    # REMOTE BRANCHES
+    branch_output=`git branch -r`
 
-    defmaster="false";
+    branches=""
+    next_is_default=false
+    default_branch=""
+    default_branch_latest_commit=""
 
-    branches=`git branch -a`
-    for item in ${branches:2}
+    # iterate over branch output to determine default branch
+    for item in ${branch_output:2}
     do
-
-      branch=${item//[\/]/$}
-      if [ "$branch" == "master" ]; then
-        defmaster = "true";
+      # determine default branch
+      if [ "$item" == "origin/HEAD" ]; then 
+        continue
       fi
 
       if [ "$item" == "->" ]; then
-        continue
-      fi
-      if [ "$defmaster" == "true" ]; then
-        if [ "$item" == "origin/master" ]; then
-          continue
-        fi
-      fi
-      if [ "$item" == "remotes/origin/HEAD" ]; then
+        next_is_default=true
         continue
       fi
 
-      git checkout $item
+      if [ "$next_is_default" == true ] ; then
+        default_branch="$item"
+        default_branch_latest_commit=`git log -n 1 $item --pretty=format:"%H"`
+        next_is_default=false
+        echo "Default branch: $default_branch"
+        continue    
+      fi
+
+      branches=$branches$item$'\n'
+    done
+
+    # write header for branches csv
+    branches_csv=$targetdir$clearname"_branches.csv"
+    echo $'branch,default_branch,latest_commit,merge_base' > $branches_csv 
+
+    # iterate over branches to save git log, latest commit, and merge-base
+    for remote_branch in ${branches}
+    do
+      branch="${remote_branch/origin\/}"
+
+      # check out current branch and save git log
+      if [ "$remote_branch" == "$default_branch" ] ; then
+        git checkout $branch
+      else
+        git checkout -b $branch $remote_branch 
+      fi
+
       targetfile=$targetdir$clearname"§"$branch".log"
-      echo "Item: $item"
-      echo "Targetfile: $targetfile"
-
+      echo "Remote branch: $remote_branch"
+      echo "Branch name: $branch"
+      echo "Target file: $targetfile"
+      
       git config merge.renameLimit 999999
       git config diff.renameLimit 999999
 
       git log --date=iso --numstat --diff-filter=ADM > $targetfile
 
+      output=$branch
+      if [ "$remote_branch" == "$default_branch" ]; then
+        output=$output",true"
+      else
+        output=$output",false"
+      fi
+
+      # append latest commit
+      latest_commit=`git log -n 1 $remote_branch --pretty=format:"%H"`
+      output=$output","$latest_commit
+
+      # append merge-base
+      args=$default_branch_latest_commit" "$latest_commit
+      merge_base=`git merge-base $args`
+      output=$output","$merge_base$'\n'
+
+      echo $output >> $branches_csv
     done
 
     cd ..
