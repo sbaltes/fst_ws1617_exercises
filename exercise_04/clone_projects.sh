@@ -1,6 +1,6 @@
 #!/bin/bash
 
-targetdir="/e/Temp/"
+targetdir="/media/data/logs/"
 
 
 # Clone all repos
@@ -16,7 +16,7 @@ do
     date
     echo "###############################################################################################################"
     name="$line"
-	name=`echo "$name" | xargs` # trim string
+    name=`echo "$name" | xargs` # trim string
     echo "Name read from file: $name"
 
     github="https://www.github.com/"
@@ -71,7 +71,7 @@ do
 
     # write header for branches csv
     branches_csv=$targetdir$clearname"_branches.csv"
-    echo $'branch,default_branch,latest_commit,merge_base' > $branches_csv 
+    echo $'project,branch,default_branch,latest_commit,merge_base' > $branches_csv 
 
     # iterate over branches to save git log, latest commit, and merge-base
     for remote_branch in ${branches}
@@ -85,7 +85,7 @@ do
         git checkout -b $branch $remote_branch 
       fi
 
-	  clearbranch=${branch//[\/]/_}
+      clearbranch=${branch//[\/]/_}
       targetfile=$targetdir$clearname"§"$clearbranch".log"
       echo "Remote branch: $remote_branch"
       echo "Branch name: $branch"
@@ -96,7 +96,7 @@ do
 
       git log --date=iso --numstat --diff-filter=ADM > $targetfile
 
-      output=$branch
+      output=$name","$branch
       if [ "$remote_branch" == "$default_branch" ]; then
         output=$output",true"
       else
