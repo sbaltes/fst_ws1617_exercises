@@ -19,7 +19,7 @@ do
     name=`echo "$name" | xargs` # trim string
     echo "Name read from file: $name"
 
-    github="https://www.github.com/"
+    github="https://github.com/"
     git=".git"
     gitlink=$github$name$git
 
@@ -86,16 +86,23 @@ do
       fi
 
       clearbranch=${branch//[\/]/_}
-      targetfile=$targetdir$clearname"§"$clearbranch".log"
+      targetfile_commits=$targetdir$clearname"§"$clearbranch"_commits.log"
+      targetfile_merges=$targetdir$clearname"§"$clearbranch"_merges.log"
       echo "Remote branch: $remote_branch"
       echo "Branch name: $branch"
-      echo "Target file: $targetfile"
+      echo "Target file commits: $targetfile_commits"
+      echo "Target file merges: $targetfile_merges"
       
       git config merge.renameLimit 999999
       git config diff.renameLimit 999999
 
-      git log --date=iso --numstat --diff-filter=ADM > $targetfile
+      # save commit logs
+      git log --no-merges --date=iso --numstat --diff-filter=ADM > $targetfile_commits
 
+      # save merge logs
+      git log --merges --date=iso > $targetfile_merges
+
+      # generate row for branch CSV
       output=$name","$branch
       if [ "$remote_branch" == "$default_branch" ]; then
         output=$output",true"
@@ -112,6 +119,7 @@ do
       merge_base=`git merge-base $args`
       output=$output","$merge_base$'\n'
 
+      # write row to branch csv
       echo $output >> $branches_csv
     done
 
