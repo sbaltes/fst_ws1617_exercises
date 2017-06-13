@@ -1,6 +1,6 @@
 #!/bin/bash
 
-targetdir="/media/data/logs/"
+targetdir="/media/airbnb/data/logs/"
 
 
 # Clone all repos
@@ -97,10 +97,10 @@ do
       git config diff.renameLimit 999999
 
       # save commit logs
-      git log --no-merges --date=iso --numstat --diff-filter=ADM > $targetfile_commits
+      git log --pretty=fuller --no-merges --date=iso --numstat --diff-filter=ADM > $targetfile_commits
 
       # save merge logs
-      git log --merges --date=iso > $targetfile_merges
+      git log --pretty=fuller --merges --date=iso > $targetfile_merges
 
       # generate row for branch CSV
       output=$name","$branch
